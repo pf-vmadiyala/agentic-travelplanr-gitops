@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-planner-api
+  namespace: travel-planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel-planner-api
+  template:
+    metadata:
+      labels:
+        app: travel-planner-api
+    spec:
+      serviceAccountName: travel-planner-api
+      containers:
+        - name: api
+          image: 186224145882.dkr.ecr.us-east-1.amazonaws.com/travel-planner/app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: travel-planner-config
+            - secretRef:
+                name: travel-planner-secrets
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

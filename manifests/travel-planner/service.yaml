@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: travel-planner-api
+  namespace: travel-planner
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: travel-planner-api

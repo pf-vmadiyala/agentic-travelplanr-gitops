@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: travel-planner-worker
+  namespace: travel-planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: travel-planner-worker
+  template:
+    metadata:
+      labels:
+        app: travel-planner-worker
+    spec:
+      serviceAccountName: travel-planner-worker
+      containers:
+        - name: worker
+          image: 186224145882.dkr.ecr.us-east-1.amazonaws.com/travel-planner/app:latest
+          imagePullPolicy: Always
+          command:
+            [
+              "celery",
+              "-A",
+              "src.tasks.celery_app",
+              "worker",
+              "--loglevel=info",
+            ]
+          envFrom:
+            - configMapRef:
+                name: travel-planner-config
+            - secretRef:
+                name: travel-planner-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
