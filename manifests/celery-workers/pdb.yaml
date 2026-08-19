@@ -4,7 +4,7 @@ metadata:
   name: travel-planner-worker-pdb
   namespace: travel-planner
 spec:
-  minAvailable: 1
+  maxUnavailable: 1
   selector:
     matchLabels:
       app: travel-planner-worker
