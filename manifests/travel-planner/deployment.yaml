@@ -16,7 +16,7 @@ spec:
       serviceAccountName: travel-planner-api
       containers:
         - name: api
-          image: 186224145882.dkr.ecr.us-east-1.amazonaws.com/travel-planner/app:6d21ff4
+          image: 138257835519.dkr.ecr.us-east-2.amazonaws.com/travel-planner/app:37f5c63
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
