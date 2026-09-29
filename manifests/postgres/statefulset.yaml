@@ -32,6 +32,25 @@ spec:
             # and initdb refuses a non-empty directory.
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # pg_isready ships in the image: it checks the server accepts connections.
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "travel_planner", "-h", "127.0.0.1"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "postgres", "-d", "travel_planner", "-h", "127.0.0.1"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 6 # ~2 min of failures before a restart; gives crash recovery time
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data

@@ -3,9 +3,12 @@ kind: Service
 metadata:
   name: travel-planner-api
   namespace: travel-planner
+  labels:
+    app: travel-planner-api # lets a Prometheus ServiceMonitor select this Service
 spec:
   ports:
-    - port: 8000
+    - name: http # ServiceMonitors pick endpoints by port name
+      port: 8000
       targetPort: 8000
       protocol: TCP
   selector:
