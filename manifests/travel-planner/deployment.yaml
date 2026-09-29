@@ -4,7 +4,6 @@ metadata:
   name: travel-planner-api
   namespace: travel-planner
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: travel-planner-api
