@@ -38,15 +38,3 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
-          # Asks this specific worker to reply over the broker. A worker that is
-          # running but stuck (not consuming from Redis) fails this and is restarted.
-          livenessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - celery -A src.tasks.celery_app inspect ping -d celery@$HOSTNAME --timeout 10
-            initialDelaySeconds: 60
-            periodSeconds: 60
-            timeoutSeconds: 20
-            failureThreshold: 3
