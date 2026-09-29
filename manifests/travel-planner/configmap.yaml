@@ -11,7 +11,7 @@ data:
 
   # LLM Provider settings
   LLM_PROVIDER: "xai"
-  XAI_MODEL: "grok-4.3"
+  LLM_MODEL_NAME: "grok-4.3"
 
   # LangSmith Tracing configurations
   LANGCHAIN_TRACING_V2: "true"
