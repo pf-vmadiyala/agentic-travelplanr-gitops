@@ -28,6 +28,10 @@ spec:
             # For bootstrap simplicity, we use a basic password key; you can bind it to secrets later.
             - name: POSTGRES_PASSWORD
               value: postgres
+            # Keep data in a subdirectory: the EBS volume root contains lost+found,
+            # and initdb refuses a non-empty directory.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-storage
               mountPath: /var/lib/postgresql/data
