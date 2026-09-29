@@ -16,7 +16,7 @@ spec:
       serviceAccountName: travel-planner-worker
       containers:
         - name: worker
-          image: 186224145882.dkr.ecr.us-east-1.amazonaws.com/travel-planner/app:6d21ff4
+          image: 138257835519.dkr.ecr.us-east-2.amazonaws.com/travel-planner/app:1cd9cf6
           imagePullPolicy: Always
           command:
             [
