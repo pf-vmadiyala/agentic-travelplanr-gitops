@@ -4,8 +4,9 @@ metadata:
   name: travel-planner-config
   namespace: travel-planner
 data:
-  # Internal Kubernetes DNS names for in-cluster Postgres and Redis
-  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres.travel-planner.svc.cluster.local:5432/travel_planner"
+  # Internal Kubernetes DNS names for in-cluster Redis.
+  # DATABASE_URL comes from the postgres-credentials Secret (see externalsecret-postgres.yaml).
+  REDIS_URL: "redis://redis.travel-planner.svc.cluster.local:6379/0"
   REDIS_URL: "redis://redis.travel-planner.svc.cluster.local:6379/0"
   CELERY_BROKER_URL: "redis://redis.travel-planner.svc.cluster.local:6379/1"
 

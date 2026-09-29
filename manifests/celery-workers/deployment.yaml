@@ -25,6 +25,12 @@ spec:
               "worker",
               "--loglevel=info",
             ]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: DATABASE_URL
           envFrom:
             - configMapRef:
                 name: travel-planner-config

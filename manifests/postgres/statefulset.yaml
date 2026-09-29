@@ -25,9 +25,13 @@ spec:
               value: travel_planner
             - name: POSTGRES_USER
               value: postgres
-            # For bootstrap simplicity, we use a basic password key; you can bind it to secrets later.
+            # Only used when the data directory is first initialised; after that,
+            # the live password is changed with ALTER USER (see H5 runbook).
             - name: POSTGRES_PASSWORD
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
             # Keep data in a subdirectory: the EBS volume root contains lost+found,
             # and initdb refuses a non-empty directory.
             - name: PGDATA
