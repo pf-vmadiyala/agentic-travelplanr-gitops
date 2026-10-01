@@ -1,0 +1,121 @@
+# kube-prometheus-stack settings.
+# Everything heavy runs on the monitoring server (label role=monitoring) so it never squeezes the app servers.
+fullnameOverride: kps
+
+# ---------- Section A: switch off what EKS doesn't let us see ----------
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeEtcd: { enabled: false }
+kubeProxy: { enabled: false }
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeProxy: false
+# ---------- Section B: Prometheus (the data logger) ----------
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    retention: 3d
+    retentionSize: 15GB
+    nodeSelector: { role: monitoring }
+    resources:
+      requests: { cpu: 200m, memory: 1Gi }
+      limits: { memory: 2Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: [ReadWriteOnce]
+          resources: { requests: { storage: 20Gi } }
+# ---------- Section C: Alertmanager (the alarm bell; routes configured in Phase 2) ----------
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector: { role: monitoring }
+    secrets: [alertmanager-notifiers]
+    resources:
+      requests: { cpu: 20m, memory: 64Mi }
+      limits: { memory: 128Mi }
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: [ReadWriteOnce]
+          resources: { requests: { storage: 1Gi } }
+# ---------- Section D: Grafana (the graphs website) ----------
+grafana:
+  nodeSelector: { role: monitoring }
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+  persistence: { enabled: true, storageClassName: gp3, size: 2Gi }
+  testFramework: { enabled: false }
+  resources:
+    requests: { cpu: 50m, memory: 192Mi }
+    limits: { memory: 384Mi }
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+      folderAnnotation: grafana_folder
+      provider: { foldersFromFilesStructure: true }
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      url: http://loki.monitoring.svc.cluster.local:3100
+      jsonData: { maxLines: 2000 }
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: community
+          folder: Community
+          type: file
+          disableDeletion: true
+          options: { path: /var/lib/grafana/dashboards/community }
+  dashboards:
+    community:
+      k8s-global: { gnetId: 15757, revision: 43, datasource: Prometheus }
+      k8s-namespaces: { gnetId: 15758, revision: 46, datasource: Prometheus }
+      k8s-nodes: { gnetId: 15759, revision: 40, datasource: Prometheus }
+      k8s-pods: { gnetId: 15760, revision: 41, datasource: Prometheus }
+      node-exporter-full: { gnetId: 1860, revision: 45, datasource: Prometheus }
+      postgres: { gnetId: 9628, revision: 8, datasource: Prometheus }
+      redis: { gnetId: 763, revision: 6, datasource: Prometheus }
+      blackbox: { gnetId: 7587, revision: 3, datasource: Prometheus }
+# ---------- Section E: the helpers ----------
+kube-state-metrics:
+  nodeSelector: { role: monitoring }
+  metricLabelsAllowlist:
+    - pods=[app]
+    - deployments=[app]
+  resources:
+    requests: { cpu: 10m, memory: 64Mi }
+    limits: { memory: 192Mi }
+
+prometheus-node-exporter:
+  tolerations: [{ operator: Exists }]
+  resources:
+    requests: { cpu: 10m, memory: 32Mi }
+    limits: { memory: 64Mi }
+
+prometheusOperator:
+  nodeSelector: { role: monitoring }
+  admissionWebhooks: { enabled: false }
+  tls: { enabled: false }
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+  
