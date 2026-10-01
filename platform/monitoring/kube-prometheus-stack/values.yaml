@@ -61,7 +61,7 @@ grafana:
   testFramework: { enabled: false }
   resources:
     requests: { cpu: 50m, memory: 192Mi }
-    limits: { memory: 384Mi }
+    limits: { memory: 768Mi }
   sidecar:
     dashboards:
       enabled: true
