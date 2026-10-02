@@ -1,0 +1,1036 @@
+# Custom dashboard D1. Grafana's sidecar loads any ConfigMap labelled grafana_dashboard=1.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-travel-planner-overview
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: Travel Planner
+data:
+  travel-planner-overview.json: |
+    {
+      "title": "Travel Planner: Service Overview",
+      "uid": "tp-overview",
+      "tags": [
+        "travel-planner"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "type": "row",
+          "title": "Is it OK right now?",
+          "id": 1,
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "panels": []
+        },
+        {
+          "type": "stat",
+          "title": "API reachable (internal probe)",
+          "id": 2,
+          "description": "1 = the readiness URL answered 2xx on the last probe. 0 = users are probably affected.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 0,
+            "y": 1
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "UP"
+                    },
+                    "0": {
+                      "text": "DOWN"
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "min(probe_success{service=\"travel-planner-api\"})",
+              "legendFormat": ""
+            }
+          ],
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            }
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Probe response time",
+          "id": 3,
+          "description": "How long the readiness check took end to end.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 6,
+            "y": 1
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.5
+                  },
+                  {
+                    "color": "red",
+                    "value": 2
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "max(probe_duration_seconds{service=\"travel-planner-api\"})",
+              "legendFormat": ""
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Availability (non-5xx, selected range)",
+          "id": 4,
+          "description": "Share of API requests that did not fail with 5xx. SLO target 99%.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 12,
+            "y": 1
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 0.99
+                  },
+                  {
+                    "color": "green",
+                    "value": 0.995
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "1 - (sum(increase(api_requests_total{namespace=\"travel-planner\",status=~\"5..\"}[$__range])) or vector(0)) / clamp_min(sum(increase(api_requests_total{namespace=\"travel-planner\"}[$__range])), 1)",
+              "legendFormat": ""
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "API pods available",
+          "id": 5,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 5,
+            "w": 6,
+            "x": 18,
+            "y": 1
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  },
+                  {
+                    "color": "green",
+                    "value": 2
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum(kube_deployment_status_replicas_available{namespace=\"travel-planner\",deployment=\"travel-planner-api\"})",
+              "legendFormat": ""
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Traffic, errors, latency (golden signals)",
+          "id": 6,
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 6
+          },
+          "panels": []
+        },
+        {
+          "type": "timeseries",
+          "title": "Requests per second: top 10 endpoints",
+          "id": 7,
+          "description": "Only the 10 busiest URLs are shown. The app labels raw paths (issue M16), so scanner URLs and trip IDs would otherwise create hundreds of lines.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 7
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "reqps"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "topk(10, sum by (endpoint) (rate(api_requests_total{namespace=\"travel-planner\"}[5m])))",
+              "legendFormat": "{{endpoint}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "5xx error ratio",
+          "id": 8,
+          "description": "Alert fires above 5% for 5 minutes.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 7
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit",
+              "custom": {
+                "thresholdsStyle": {
+                  "mode": "line"
+                }
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 0.05
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "(sum(rate(api_requests_total{namespace=\"travel-planner\",status=~\"5..\"}[5m])) or vector(0)) / clamp_min(sum(rate(api_requests_total{namespace=\"travel-planner\"}[5m])), 1e-9)",
+              "legendFormat": "5xx ratio"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "API latency p50 / p95 / p99",
+          "id": 9,
+          "description": "Time the API took to answer (all endpoints). Buckets top out at 10s, so anything slower shows as 10s+.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 15
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "histogram_quantile(0.5, sum by (le) (rate(api_request_duration_seconds_bucket{namespace=\"travel-planner\"}[5m])))",
+              "legendFormat": "p50"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "histogram_quantile(0.95, sum by (le) (rate(api_request_duration_seconds_bucket{namespace=\"travel-planner\"}[5m])))",
+              "legendFormat": "p95"
+            },
+            {
+              "refId": "C",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "histogram_quantile(0.99, sum by (le) (rate(api_request_duration_seconds_bucket{namespace=\"travel-planner\"}[5m])))",
+              "legendFormat": "p99"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "p95 latency: 10 slowest endpoints",
+          "id": 10,
+          "description": "95% of requests to each URL were faster than this. Only the 10 slowest are shown.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 15
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "topk(10, histogram_quantile(0.95, sum by (le, endpoint) (rate(api_request_duration_seconds_bucket{namespace=\"travel-planner\"}[5m]))))",
+              "legendFormat": "{{endpoint}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Agent runs: success vs failure (per 5m, shows data only while trips are being planned)",
+          "id": 11,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 23
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (agent_name) (increase(agent_success_total[5m]))",
+              "legendFormat": "ok {{agent_name}}"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (agent_name) (increase(agent_failure_total[5m]))",
+              "legendFormat": "FAIL {{agent_name}}"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Saturation: are the pods starving?",
+          "id": 12,
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 30
+          },
+          "panels": []
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU used by pod (cores)",
+          "id": 13,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 31
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"travel-planner\",container!=\"\"}[5m]))",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "CPU throttling by pod",
+          "id": 14,
+          "description": "Share of time the pod wanted CPU but hit its limit. The #1 hidden cause of latency.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 31
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (pod) (rate(container_cpu_cfs_throttled_periods_total{namespace=\"travel-planner\",container!=\"\"}[5m])) / clamp_min(sum by (pod) (rate(container_cpu_cfs_periods_total{namespace=\"travel-planner\",container!=\"\"}[5m])), 1e-9)",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Memory used vs limit by pod",
+          "id": 15,
+          "description": "Near 100% = about to be OOMKilled.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 31
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"travel-planner\",container!=\"\"}) / clamp_min(sum by (pod) (kube_pod_container_resource_limits{namespace=\"travel-planner\",resource=\"memory\"}), 1)",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Container restarts (last 1h)",
+          "id": 16,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 39
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace=\"travel-planner\"}[1h]))",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "HPA replicas: current vs desired",
+          "id": 17,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 39
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "kube_horizontalpodautoscaler_status_current_replicas{namespace=\"travel-planner\"}",
+              "legendFormat": "current {{horizontalpodautoscaler}}"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"travel-planner\"}",
+              "legendFormat": "desired {{horizontalpodautoscaler}}"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Disk used (PVCs)",
+          "id": 18,
+          "description": "Postgres disk is only 2Gi. Full disk = database outage.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 39
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percentunit"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "kubelet_volume_stats_used_bytes{namespace=\"travel-planner\"} / kubelet_volume_stats_capacity_bytes{namespace=\"travel-planner\"}",
+              "legendFormat": "{{persistentvolumeclaim}}"
+            }
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Dependencies: Celery, Redis, Postgres",
+          "id": 19,
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 47
+          },
+          "panels": []
+        },
+        {
+          "type": "timeseries",
+          "title": "Celery: jobs waiting and workers alive",
+          "id": 20,
+          "description": "Jobs waiting should stay near 0. Waiting grows while workers alive drops to 0 = dead worker.",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 48
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (queue_name) (celery_queue_length)",
+              "legendFormat": "waiting in {{queue_name}}"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum(celery_active_worker_count)",
+              "legendFormat": "workers alive"
+            },
+            {
+              "refId": "C",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum(celery_worker_tasks_active)",
+              "legendFormat": "jobs running"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Redis memory and clients",
+          "id": 21,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 48
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "memory used"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "clients"
+                },
+                "properties": [
+                  {
+                    "id": "custom.axisPlacement",
+                    "value": "right"
+                  }
+                ]
+              }
+            ]
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "redis_memory_used_bytes",
+              "legendFormat": "memory used"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "redis_connected_clients",
+              "legendFormat": "clients"
+            }
+          ]
+        },
+        {
+          "type": "timeseries",
+          "title": "Postgres connections by state",
+          "id": 22,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 48
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum by (state) (pg_stat_activity_count{datname=\"travel_planner\"})",
+              "legendFormat": "{{state}}"
+            }
+          ]
+        },
+        {
+          "type": "stat",
+          "title": "Exporters up",
+          "id": 23,
+          "description": "",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 24,
+            "x": 0,
+            "y": 56
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "green",
+                    "value": 1
+                  }
+                ]
+              },
+              "color": {
+                "mode": "thresholds"
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "max(pg_up)",
+              "legendFormat": "postgres"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "max(redis_up)",
+              "legendFormat": "redis"
+            },
+            {
+              "refId": "C",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "max(up{job=\"celery-exporter\"})",
+              "legendFormat": "celery-exporter"
+            },
+            {
+              "refId": "D",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "max(up{job=\"travel-planner-api\"})",
+              "legendFormat": "api /metrics"
+            },
+            {
+              "refId": "E",
+              "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+              },
+              "expr": "sum(celery_active_worker_count)",
+              "legendFormat": "celery workers"
+            }
+          ],
+          "options": {
+            "colorMode": "background",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ]
+            },
+            "textMode": "value_and_name"
+          }
+        },
+        {
+          "type": "row",
+          "title": "Logs",
+          "id": 24,
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 60
+          },
+          "panels": []
+        },
+        {
+          "type": "logs",
+          "title": "Errors in travel-planner logs",
+          "id": 25,
+          "description": "",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "gridPos": {
+            "h": 10,
+            "w": 24,
+            "x": 0,
+            "y": 61
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "loki",
+                "uid": "loki"
+              },
+              "expr": "{namespace=\"travel-planner\"} |~ \"(?i)error|exception|traceback\""
+            }
+          ],
+          "options": {
+            "showTime": true,
+            "wrapLogMessage": true,
+            "sortOrder": "Descending"
+          }
+        }
+      ],
+      "annotations": {
+        "list": [
+          {
+            "name": "Alerts",
+            "datasource": {
+              "type": "prometheus",
+              "uid": "prometheus"
+            },
+            "enable": true,
+            "iconColor": "red",
+            "expr": "ALERTS{alertstate=\"firing\",severity=~\"critical|warning\"}",
+            "step": "30s",
+            "titleFormat": "{{alertname}}",
+            "textFormat": "{{severity}}",
+            "useValueForTime": false
+          }
+        ]
+      }
+    }
