@@ -1,0 +1,15 @@
+# Tells Prometheus to scrape the API's own /metrics page
+# (api_requests_total, api_request_duration_seconds, agent_success_total, agent_failure_total).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: travel-planner-api
+  namespace: travel-planner
+spec:
+  selector:
+    matchLabels:
+      app: travel-planner-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
