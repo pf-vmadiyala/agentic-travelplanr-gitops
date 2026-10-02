@@ -1,0 +1,48 @@
+# Celery exporter: watches the Celery job queue in Redis (database 1).
+# A dead or stuck worker does not break the API; a growing queue is the only symptom.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: celery-exporter
+  namespace: travel-planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: celery-exporter }
+  template:
+    metadata:
+      labels: { app: celery-exporter }
+    spec:
+      nodeSelector: { role: monitoring }
+      containers:
+        - name: exporter
+          image: danihodovic/celery-exporter:0.12.2
+          args:
+            - --broker-url=redis://redis.travel-planner.svc.cluster.local:6379/1
+          ports:
+            - { name: metrics, containerPort: 9808 }
+          resources:
+            requests: { cpu: 10m, memory: 64Mi }
+            limits: { memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: celery-exporter
+  namespace: travel-planner
+  labels: { app: celery-exporter }
+spec:
+  selector: { app: celery-exporter }
+  ports:
+    - { name: metrics, port: 9808, targetPort: metrics }
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: celery-exporter
+  namespace: travel-planner
+spec:
+  selector:
+    matchLabels: { app: celery-exporter }
+  endpoints:
+    - { port: metrics, interval: 30s }
