@@ -1,0 +1,6 @@
+# Blackbox exporter: calls a URL like a user would and reports success + how long it took.
+fullnameOverride: blackbox-exporter
+nodeSelector: { role: monitoring }
+resources:
+  requests: { cpu: 10m, memory: 32Mi }
+  limits: { memory: 64Mi }

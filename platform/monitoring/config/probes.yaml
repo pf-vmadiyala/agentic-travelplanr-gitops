@@ -1,0 +1,18 @@
+# Synthetic check: call the API's readiness URL every 30s from inside the cluster, like a user would.
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: travel-planner-internal
+  namespace: monitoring
+spec:
+  interval: 30s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.monitoring.svc:9115
+  targets:
+    staticConfig:
+      static:
+        - http://travel-planner-api.travel-planner.svc.cluster.local:8000/api/v1/health/ready
+      labels:
+        service: travel-planner-api
+        probe_scope: internal
