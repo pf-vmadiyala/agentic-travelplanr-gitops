@@ -1,0 +1,15 @@
+# Postgres exporter: connections, transactions, locks, database size.
+# Reuses the postgres-credentials Secret that ESO builds from Secrets Manager (fix H5).
+fullnameOverride: postgres-exporter
+config:
+  datasource:
+    host: postgres.travel-planner.svc.cluster.local
+    userSecret: { name: postgres-credentials, key: POSTGRES_USER }
+    passwordSecret: { name: postgres-credentials, key: POSTGRES_PASSWORD }
+    database: travel_planner
+    sslmode: disable
+serviceMonitor: { enabled: true }
+nodeSelector: { role: monitoring }
+resources:
+  requests: { cpu: 10m, memory: 32Mi }
+  limits: { memory: 96Mi }

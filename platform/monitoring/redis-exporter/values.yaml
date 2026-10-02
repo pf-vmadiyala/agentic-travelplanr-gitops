@@ -1,0 +1,8 @@
+# Redis exporter: memory, clients, ops/s, evictions. Redis is both the Celery broker and the cache.
+fullnameOverride: redis-exporter
+redisAddress: redis://redis.travel-planner.svc.cluster.local:6379
+serviceMonitor: { enabled: true }
+nodeSelector: { role: monitoring }
+resources:
+  requests: { cpu: 10m, memory: 32Mi }
+  limits: { memory: 64Mi }
